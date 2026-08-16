@@ -160,8 +160,24 @@ fn ProofSection() -> impl IntoView {
 
 #[component]
 fn PoweredBy() -> impl IntoView {
-    // Rust crab mascot (inline SVG) + official site link.
-    let crab = r##"<svg class="crab" viewBox="0 0 64 64" aria-hidden="true"><g fill="currentColor"><ellipse cx="32" cy="38" rx="17" ry="15"/><circle cx="22" cy="32" r="4"/><circle cx="42" cy="32" r="4"/><circle cx="22" cy="31" r="1.6" fill="#f7f6f2"/><circle cx="42" cy="31" r="1.6" fill="#f7f6f2"/><rect x="29" y="42" width="6" height="5" rx="2"/><path d="M8 30 Q20 14 34 18 L28 26 Z"/><path d="M56 30 Q44 14 30 18 L36 26 Z"/><path d="M6 28 q-6-4 0-10 q8 0 6 8 Z"/><path d="M58 28 q6-4 0-10 q-8 0-6 8 Z"/><rect x="12" y="40" width="10" height="6" rx="3" transform="rotate(-18 17 43)"/><rect x="42" y="40" width="10" height="6" rx="3" transform="rotate(18 47 43)"/></g></svg>"##;
+    // Rust crab mascot as a real Leptos view node (not an escaped string).
+    let crab = view! {
+        <svg class="crab" viewBox="0 0 64 64" aria-hidden="true">
+            <g fill="currentColor">
+                <ellipse cx="32" cy="38" rx="17" ry="15"/>
+                <circle cx="22" cy="32" r="4"/><circle cx="42" cy="32" r="4"/>
+                <circle cx="22" cy="31" r="1.6" fill="#f7f6f2"/><circle cx="42" cy="31" r="1.6" fill="#f7f6f2"/>
+                <rect x="29" y="42" width="6" height="5" rx="2"/>
+                <path d="M8 30 Q20 14 34 18 L28 26 Z"/>
+                <path d="M56 30 Q44 14 30 18 L36 26 Z"/>
+                <path d="M6 28 q-6-4 0-10 q8 0 6 8 Z"/>
+                <path d="M58 28 q6-4 0-10 q-8 0-6 8 Z"/>
+                <rect x="12" y="40" width="10" height="6" rx="3" transform="rotate(-18 17 43)"/>
+                <rect x="42" y="40" width="10" height="6" rx="3" transform="rotate(18 47 43)"/>
+            </g>
+        </svg>
+    }
+    .into_any();
     view! {
         <section class="section powered-by" data-reveal>
             <p class="kicker">"POWERED BY"</p>
@@ -202,6 +218,75 @@ fn FinalCta() -> impl IntoView {
 }
 
 #[component]
+fn PlumbingSection() -> impl IntoView {
+    // The estate manifest: zero auth code, zero UI code — pure composition.
+    let ecompose = r#"project: proof-rust
+
+estates:
+  proof-rust:
+    hostname: proof-rust.getecosphere.com
+    ingress: tunnel
+    cloudflare_account: getecosphere
+    services:
+      - proof-rust
+      - auth-backend
+      - auth-ui
+
+services:
+  proof-rust:
+    path: .
+    runtimes:
+      - rust
+
+  auth-backend:
+    lxs: auth@1.1.0
+
+  auth-ui:
+    lxs: auth-ui@0.1.0
+
+auth:
+  email_verification:
+    enabled: false"#;
+    let fetch_script = r##"(function () {
+      var pre = document.getElementById("ecompose-live");
+      if (!pre) return;
+      fetch("https://raw.githubusercontent.com/getecosphere/proof-rust/main/ecompose.yml")
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+        .then(function (t) { pre.textContent = t; pre.classList.add("loaded"); })
+        .catch(function () { /* keep the embedded copy */ });
+    })();"##;
+    view! {
+        <section class="section plumbing-section" id="plumbing" data-reveal>
+            <div class="section-grid">
+                <div>
+                    <p class="kicker">"THE PLUMBING"</p>
+                    <h2>"Zero auth code. Zero UI code. Just composition."</h2>
+                    <p class="large-copy">"There is no auth implementation in this estate — not the API, not the signin page. The whole identity boundary is two lines that say <em>compose the auth LXS</em>. Everything else (JWT, registration, verification, the signin/signup UI) is a binary pulled from the registry and run as-is."</p>
+                    <ul class="plumbing-list">
+                        <li><b>auth-backend</b><span>"the auth API — login, register, JWT, verify — a 10.7 MB binary, zero source here"</span></li>
+                        <li><b>auth-ui</b><span>"the signin/signup pages — a 1.3 MB binary, zero source here"</span></li>
+                        <li><b>proof-rust</b><span>"the only code this estate owns — the homepage you are reading"</span></li>
+                    </ul>
+                    <div class="git-card">
+                        <svg class="git-mark" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+                        <div class="git-copy">
+                            <b>getecosphere/proof-rust</b>
+                            <code>"git clone https://github.com/getecosphere/proof-rust.git"</code>
+                        </div>
+                        <a class="btn-secondary git-btn" href="https://github.com/getecosphere/proof-rust" target="_blank" rel="noopener">"View on GitHub →"</a>
+                    </div>
+                </div>
+                <div class="code-shell">
+                    <div class="code-head"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><code>ecompose.yml</code></div>
+                    <pre id="ecompose-live" class="code-pre">{ecompose}</pre>
+                </div>
+            </div>
+        </section>
+        <script>{fetch_script}</script>
+    }
+}
+
+#[component]
 fn Footer() -> impl IntoView {
     view! {
         <footer class="foot"><div class="foot-inner"><p>"Proof estate · Rust + auth LXS · composed with eco"</p><div class="foot-nav"><a href="/signin">"Sign in"</a><a href="/signup">"Sign up"</a></div></div></footer>
@@ -237,6 +322,7 @@ fn App() -> impl IntoView {
                 <Hero />
                 <LxsNarrative />
                 <ComposeSection />
+                <PlumbingSection />
                 <ProofSection />
                 <PoweredBy />
                 <FinalCta />

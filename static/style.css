@@ -650,3 +650,24 @@ html.js [data-reveal].in-view { opacity:1; transform:none; }
 .power-desc { color:var(--color-muted); font-size:14px; }
 .power-link { color:var(--color-brand); font:600 13px var(--font-display); }
 @media (max-width:900px){ .powered-by .power-grid { grid-template-columns:1fr; } }
+
+/* --- Plumbing: zero-code composition + GitHub clone + live ecompose --- */
+.plumbing-section .section-grid { align-items:start; }
+.plumbing-list { list-style:none; margin:26px 0 0; padding:0; display:grid; gap:10px; }
+.plumbing-list li { display:grid; gap:3px; padding:13px 15px; border:1px solid var(--color-border); border-radius:var(--radius-md); background:var(--color-surface); }
+.plumbing-list b { font:600 13px var(--font-mono); color:var(--color-brand); }
+.plumbing-list span { color:var(--color-muted); font-size:13px; }
+.git-card { display:flex; align-items:center; gap:14px; margin-top:22px; padding:16px; border:1px solid var(--color-border-strong); border-radius:var(--radius-md); background:var(--color-surface); }
+.git-mark { width:30px; height:30px; color:var(--color-ink); flex-shrink:0; }
+.git-copy { min-width:0; display:grid; gap:4px; }
+.git-copy b { font-size:14px; }
+.git-copy code { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--color-muted); font:11px var(--font-mono); }
+.git-btn { margin-left:auto; flex-shrink:0; min-height:38px; font-size:13px; }
+.code-shell { overflow:hidden; border:1px solid var(--color-border-strong); border-radius:var(--radius-lg); background:var(--color-dark); box-shadow:var(--shadow-subtle); }
+.code-head { display:flex; align-items:center; gap:7px; padding:11px 14px; border-bottom:1px solid rgba(255,255,255,.08); }
+.code-head .dot { width:10px; height:10px; border-radius:50%; }
+.dot-r { background:#ff5f57; } .dot-y { background:#febc2e; } .dot-g { background:#28c840; }
+.code-head code { margin-left:8px; color:#bdb3c3; font:11px var(--font-mono); }
+.code-pre { margin:0; padding:18px; overflow:auto; color:#e8e2f0; font:12px/1.7 var(--font-mono); white-space:pre; }
+.code-pre.loaded { color:#7ee2a0; }
+@media (max-width:900px){ .git-card { flex-wrap:wrap; } .git-btn { width:100%; margin-left:0; } }
