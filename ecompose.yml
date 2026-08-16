@@ -1,6 +1,5 @@
 project: proof-rust
 
-
 estates:
   proof-rust:
     hostname: proof-rust.getecosphere.com
@@ -9,7 +8,7 @@ estates:
     services:
       - proof-rust
       - auth-backend
-
+      - auth-ui
 
 services:
   proof-rust:
@@ -18,9 +17,11 @@ services:
       - rust
 
   auth-backend:
-    lxs: auth@1.0.0
+    lxs: auth@1.1.0
+
+  auth-ui:
+    lxs: auth-ui@0.1.0
 
 auth:
   email_verification:
     enabled: false
-  enabled: true
