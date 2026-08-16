@@ -637,3 +637,16 @@ html.js [data-reveal].in-view { opacity:1; transform:none; }
 .compose-proof .proof-band-compact { margin-top:8px; }
 .compose-proof .cmd-line { opacity:0; transform:translateY(8px); animation:estate-arrive .38s ease-out forwards; }
 .compose-proof .cmd-line:nth-child(1){animation-delay:.08s}.compose-proof .cmd-line:nth-child(2){animation-delay:.2s}.compose-proof .cmd-line:nth-child(3){animation-delay:.32s}.compose-proof .cmd-line:nth-child(4){animation-delay:.44s}
+
+/* --- Powered by: mascot + framework links --- */
+.powered-by .power-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:38px; }
+.power-card { display:grid; gap:8px; padding:22px; border:1px solid var(--color-border-strong); border-radius:var(--radius-lg); background:var(--color-surface); transition:transform var(--dur-fast) var(--ease-out),border-color var(--dur-fast); }
+.power-card:hover { transform:translateY(-3px); border-color:var(--color-brand); }
+.power-card .crab { width:44px; height:44px; color:var(--color-brand); }
+.power-logo { display:grid; place-items:center; width:44px; height:44px; border-radius:12px 12px 12px 3px; font:700 22px var(--font-display); }
+.power-logo.leptos { background:#20212a; color:#ff5c35; }
+.power-logo.eco { background:var(--color-brand); color:var(--color-surface); }
+.power-name { font:800 19px var(--font-display); letter-spacing:-.03em; }
+.power-desc { color:var(--color-muted); font-size:14px; }
+.power-link { color:var(--color-brand); font:600 13px var(--font-display); }
+@media (max-width:900px){ .powered-by .power-grid { grid-template-columns:1fr; } }
