@@ -10,6 +10,12 @@ use leptos::{component, view, IntoView};
 use leptos_axum::render_app_to_stream;
 use tokio::net::TcpListener;
 
+#[derive(Clone, Copy, PartialEq)]
+enum Page {
+    Home,
+    Dashboard,
+}
+
 // Self-contained static binary: the stylesheet is embedded, so there is no
 // static/ dir to ship and nothing to miss on the CT.
 const STYLE_CSS: &str = include_str!("../static/style.css");
@@ -33,13 +39,15 @@ fn page_meta() -> &'static str {
 #[component]
 fn Header() -> impl IntoView {
     let nav_script = r##"(function () {
-      var s = (function () { try { return JSON.parse(localStorage.getItem("proof_session") || "null"); } catch (e) { return null; } })();
+      var s = (function () { try { return JSON.parse(localStorage.getItem("eco_session") || "null"); } catch (e) { return null; } })();
       var a = document.getElementById("header-auth");
       if (!a) return;
       if (s && s.token) {
-        a.innerHTML = '<a class="btn-auth btn-auth-dash" href="/signin" data-logout="1">Sign out</a>';
+        var name = (s.user && s.user.name) ? s.user.name : "";
+        a.innerHTML = '<a class="btn-auth btn-auth-dash" href="/dashboard">Dashboard</a>' +
+          '<a class="btn-auth btn-auth-out" href="/signin" data-logout="1">Sign out</a>';
         var out = a.querySelector("[data-logout]");
-        if (out) out.addEventListener("click", function (e) { e.preventDefault(); localStorage.removeItem("proof_session"); window.location.href = "/"; });
+        if (out) out.addEventListener("click", function (e) { e.preventDefault(); localStorage.removeItem("eco_session"); window.location.href = "/"; });
       } else {
         a.innerHTML = '<a class="btn-auth btn-auth-in" href="/signin">Sign in</a>';
       }
@@ -55,6 +63,10 @@ fn Header() -> impl IntoView {
                     <a href="#lxss">"LXS"</a>
                     <a href="#compose">"Compose"</a>
                     <a href="#proof">"Proof"</a>
+                    <span class="header-avatar-wrap" data-name="1">
+                        <span id="header-avatar-txt" class="header-avatar">"?"</span>
+                        <img id="header-avatar-img" class="header-avatar header-avatar-img" alt="avatar" style="display:none" />
+                    </span>
                     <span id="header-auth"></span>
                 </nav>
             </div>
@@ -207,6 +219,62 @@ fn PoweredBy() -> impl IntoView {
 }
 
 #[component]
+fn DashboardPage() -> impl IntoView {
+    // Client-side guard: no session → redirect to /signin. Then greet by name
+    // and load the profile avatar from profile-backend.
+    let dash_js = r##"(function () {
+      var s = (function () { try { return JSON.parse(localStorage.getItem("eco_session") || "null"); } catch (e) { return null; } })();
+      if (!s || !s.token) { window.location.href = "/signin"; return; }
+      var name = (s.user && s.user.name) || "there";
+      var greeting = document.getElementById("dash-greeting");
+      var sub = document.getElementById("dash-sub");
+      if (greeting) greeting.textContent = name;
+      if (sub && s.user && s.user.email) sub.textContent = s.user.email;
+
+      // Header avatar top-right (also used on other pages).
+      var av = document.getElementById("header-avatar");
+      if (av && av.dataset.name) {
+        var initials = (name || "?").split(/\s+/).map(function (w) { return w[0]; }).join("").slice(0,2).toUpperCase();
+        av.textContent = initials;
+      }
+      // Load avatarUrl from profile-backend (profile owns avatar).
+      var userId = s.user && s.user.id;
+      if (userId) {
+        fetch("/api/users/" + encodeURIComponent(userId), { headers: { Authorization: "Bearer " + s.token } })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (p) {
+            if (p && p.avatarUrl) {
+              var img = document.getElementById("header-avatar-img");
+              if (img) { img.src = p.avatarUrl; img.style.display = "inline-block"; }
+              var txt = document.getElementById("header-avatar-txt");
+              if (txt) txt.style.display = "none";
+            }
+          }).catch(function () {});
+      }
+    })();"##;
+    view! {
+        <section class="dashboard-hero" id="dashboard">
+            <p class="kicker">"YOUR ESTATE · PROTECTED"</p>
+            <h1 class="dash-title">"Welcome back, "<span id="dash-greeting">"there"</span></h1>
+            <p id="dash-sub" class="dash-sub">""</p>
+            <p class="dash-lead">"This is the protected area of a composed estate. Identity came from the auth LXS; your profile (name, avatar) is owned by the profile LXS — both binaries, zero source here."</p>
+            <div class="dash-actions">
+                <a class="btn-primary" href="/profile">"Edit profile →"</a>
+                <a class="btn-secondary" href="/">"Back to homepage"</a>
+            </div>
+            <div class="dash-proof">
+                <span>"auth LXS · 10.7 MB"</span>
+                <i>"·"</i>
+                <span>"profile LXS · 13.7 MB"</span>
+                <i>"·"</i>
+                <span>"this core · homepage only"</span>
+            </div>
+        </section>
+        <script>{dash_js}</script>
+    }
+}
+
+#[component]
 fn FinalCta() -> impl IntoView {
     view! {
         <section class="final-cta" data-reveal>
@@ -294,7 +362,7 @@ fn Footer() -> impl IntoView {
 }
 
 #[component]
-fn App() -> impl IntoView {
+fn App(page: Page) -> impl IntoView {
     let theme_script = r##"(function () { document.documentElement.setAttribute("data-theme", "light"); })();"##;
     let reveal_script = r##"(function () {
       var els = document.querySelectorAll("[data-reveal]");
@@ -304,6 +372,19 @@ fn App() -> impl IntoView {
       }, { threshold: 0.12 });
       els.forEach(function (e) { io.observe(e); });
     })();"##;
+    let body = if page == Page::Dashboard {
+        view! { <DashboardPage /> }.into_any()
+    } else {
+        view! {
+            <Hero />
+            <LxsNarrative />
+            <ComposeSection />
+            <PlumbingSection />
+            <ProofSection />
+            <PoweredBy />
+            <FinalCta />
+        }.into_any()
+    };
     view! {
         <html data-theme="light" lang="en">
             <head>
@@ -319,13 +400,7 @@ fn App() -> impl IntoView {
             </head>
             <body>
                 <Header />
-                <Hero />
-                <LxsNarrative />
-                <ComposeSection />
-                <PlumbingSection />
-                <ProofSection />
-                <PoweredBy />
-                <FinalCta />
+                {body}
                 <Footer />
                 <script>{reveal_script}</script>
             </body>
@@ -341,7 +416,8 @@ async fn main() {
         .or_else(|| std::env::var("SERVER_PORT").ok().and_then(|p| p.parse().ok()))
         .unwrap_or(8500);
     let app = Router::new()
-        .route("/", get(render_app_to_stream(|| view! { <App /> })))
+        .route("/", get(render_app_to_stream(|| view! { <App page=Page::Home /> })))
+        .route("/dashboard", get(render_app_to_stream(|| view! { <App page=Page::Dashboard /> })))
         .route("/static/style.css", get(serve_style));
     let listener = TcpListener::bind(format!("0.0.0.0:{port}"))
         .await

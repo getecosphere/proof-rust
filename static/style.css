@@ -671,3 +671,18 @@ html.js [data-reveal].in-view { opacity:1; transform:none; }
 .code-pre { margin:0; padding:18px; overflow:auto; color:#e8e2f0; font:12px/1.7 var(--font-mono); white-space:pre; }
 .code-pre.loaded { color:#7ee2a0; }
 @media (max-width:900px){ .git-card { flex-wrap:wrap; } .git-btn { width:100%; margin-left:0; } }
+
+/* --- Dashboard: protected greeting + header avatar + smooth motion --- */
+.header-avatar-wrap { display:inline-flex; align-items:center; margin-left:8px; }
+.header-avatar { display:grid; place-items:center; width:34px; height:34px; border-radius:50%; background:var(--color-brand-soft); color:var(--color-brand); font:600 13px var(--font-mono); }
+.header-avatar-img { object-fit:cover; }
+.dashboard-hero { width:min(1240px, calc(100% - 48px)); margin:auto; min-height:calc(100vh - 72px); display:flex; flex-direction:column; justify-content:center; padding-block:clamp(56px,9vw,120px); }
+.dash-title { margin:0; font-size:clamp(44px,7vw,92px); letter-spacing:-.07em; line-height:1.02; opacity:0; transform:translateY(22px); animation:dash-in .7s var(--ease-out) .05s forwards; }
+#dash-greeting { color:var(--color-brand); }
+.dash-sub { margin:var(--space-4) 0 0; color:var(--color-brand); font:500 15px var(--font-mono); opacity:0; transform:translateY(16px); animation:dash-in .6s var(--ease-out) .25s forwards; }
+.dash-lead { max-width:56ch; margin:var(--space-6) 0 0; color:var(--color-muted); font-size:clamp(16px,1.5vw,19px); opacity:0; transform:translateY(16px); animation:dash-in .6s var(--ease-out) .4s forwards; }
+.dash-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:var(--space-8); opacity:0; transform:translateY(16px); animation:dash-in .6s var(--ease-out) .55s forwards; }
+.dash-proof { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:var(--space-12); padding:16px 20px; border:1px solid var(--color-border); border-radius:var(--radius-lg); background:var(--color-surface); color:var(--color-muted); font:500 12px var(--font-mono); opacity:0; animation:dash-in .6s var(--ease-out) .7s forwards; }
+.dash-proof i { color:var(--color-brand); font-style:normal; }
+@keyframes dash-in { from { opacity:0; transform:translateY(22px);} to { opacity:1; transform:none;} }
+@media (prefers-reduced-motion:reduce){ .dash-title,.dash-sub,.dash-lead,.dash-actions,.dash-proof{ opacity:1; transform:none; animation:none; } }
