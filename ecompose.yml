@@ -1,0 +1,26 @@
+project: proof-rust
+
+
+estates:
+  proof-rust:
+    hostname: proof-rust.getecosphere.com
+    ingress: tunnel
+    cloudflare_account: getecosphere
+    services:
+      - proof-rust
+      - auth-backend
+
+
+services:
+  proof-rust:
+    path: .
+    runtimes:
+      - rust
+
+  auth-backend:
+    lxs: auth@1.0.0
+
+auth:
+  email_verification:
+    enabled: false
+  enabled: true
