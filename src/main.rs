@@ -1,6 +1,6 @@
 use axum::{
     body::Body,
-    http::{header::CONTENT_TYPE, HeaderValue, StatusCode},
+    http::{header::{CACHE_CONTROL, CONTENT_TYPE}, HeaderValue, StatusCode},
     response::Response,
     routing::get,
     Router,
@@ -19,12 +19,32 @@ enum Page {
 // Self-contained static binary: the stylesheet is embedded, so there is no
 // static/ dir to ship and nothing to miss on the CT.
 const STYLE_CSS: &str = include_str!("../static/style.css");
+const ECO_LOGO: &[u8] = include_bytes!("../static/ecosphere.png");
+const ECO_LOGO_MARK: &[u8] = include_bytes!("../static/ecosphere-mark.png");
 
 async fn serve_style() -> Response {
     Response::builder()
         .status(StatusCode::OK)
         .header(CONTENT_TYPE, HeaderValue::from_static("text/css; charset=utf-8"))
         .body(Body::from(STYLE_CSS))
+        .unwrap()
+}
+
+async fn serve_logo() -> Response {
+    Response::builder()
+        .status(StatusCode::OK)
+        .header(CONTENT_TYPE, HeaderValue::from_static("image/png"))
+        .header(CACHE_CONTROL, HeaderValue::from_static("public, max-age=86400"))
+        .body(Body::from(ECO_LOGO))
+        .unwrap()
+}
+
+async fn serve_logo_mark() -> Response {
+    Response::builder()
+        .status(StatusCode::OK)
+        .header(CONTENT_TYPE, HeaderValue::from_static("image/png"))
+        .header(CACHE_CONTROL, HeaderValue::from_static("public, max-age=86400"))
+        .body(Body::from(ECO_LOGO_MARK))
         .unwrap()
 }
 
@@ -56,7 +76,7 @@ fn Header() -> impl IntoView {
         <header class="top">
             <div class="top-inner">
                 <a class="brand" href="/">
-                    <span class="brand-mark" aria-hidden="true">"P"</span>
+                    <img class="brand-mark-img" src="/static/ecosphere-mark.png" alt="Ecosphere" />
                     <span class="brand-name">"Proof Estate"</span>
                 </a>
                 <nav class="nav" aria-label="Primary">
@@ -208,7 +228,7 @@ fn PoweredBy() -> impl IntoView {
                     <span class="power-link">"leptos.dev →"</span>
                 </a>
                 <a class="power-card" href="https://getecosphere.com/" target="_blank" rel="noopener">
-                    <span class="power-logo eco">"E"</span>
+                    <span class="power-logo eco"><img class="power-logo-img" src="/static/ecosphere.png" alt="Ecosphere logo" /></span>
                     <span class="power-name">"Ecosphere"</span>
                     <span class="power-desc">"The composition platform: one ecompose.yml, one command, binaries shipped and run on Ecosphere compute."</span>
                     <span class="power-link">"getecosphere.com →"</span>
@@ -418,7 +438,9 @@ async fn main() {
     let app = Router::new()
         .route("/", get(render_app_to_stream(|| view! { <App page=Page::Home /> })))
         .route("/dashboard", get(render_app_to_stream(|| view! { <App page=Page::Dashboard /> })))
-        .route("/static/style.css", get(serve_style));
+        .route("/static/style.css", get(serve_style))
+        .route("/static/ecosphere.png", get(serve_logo))
+        .route("/static/ecosphere-mark.png", get(serve_logo_mark));
     let listener = TcpListener::bind(format!("0.0.0.0:{port}"))
         .await
         .expect("proof-rust frontend could not bind its port");
