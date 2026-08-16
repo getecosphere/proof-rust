@@ -151,7 +151,7 @@ fn ProofSection() -> impl IntoView {
         <section class="section proof-section" id="proof" data-reveal>
             <p class="kicker">"THE PROOF"</p>
             <h2>"One binary. Every framework."</h2>
-            <p>"The same auth@1.1.0 binary powers this estate and nine proof estates — Rust, Go, Spring Boot, Next.js, Vite, Astro, Nuxt, Node, static. Register here, then the identity is real: a JWT issued by a 10.7 MB binary that never compiled on the server."</p>
+            <p>"The same auth​@1.1.0 binary powers this estate and nine proof estates — Rust, Go, Spring Boot, Next.js, Vite, Astro, Nuxt, Node, static. Register here, then the identity is real: a JWT issued by a 10.7 MB binary that never compiled on the server."</p>
             <div class="stress-evidence"><strong>"10.7 MB"<small>"auth LXS linux binary"</small></strong><span>"25.0 MB before avatar/storage were removed"</span><i>"→"</i><span class="stress-success">"pure identity, still 57% lighter"</span></div>
             <a class="text-link" href="/signup">"Try the live signup →"</a>
         </section>
@@ -239,10 +239,10 @@ services:
       - rust
 
   auth-backend:
-    lxs: auth@1.1.0
+    lxs: auth​@1.1.0
 
   auth-ui:
-    lxs: auth-ui@0.1.0
+    lxs: auth-ui​@0.1.0
 
 auth:
   email_verification:
