@@ -11,6 +11,7 @@ estates:
       - auth-ui
       - profile-backend
       - profile-ui
+      - storage-backend
 
 services:
   proof-rust:
@@ -25,10 +26,13 @@ services:
     lxs: auth-ui@0.1.0
 
   profile-backend:
-    lxs: profile@1.1.0
+    lxs: profile@1.1.1
 
   profile-ui:
     lxs: profile-ui@0.1.0
+
+  storage-backend:
+    lxs: storage@1.0.6
 
 auth:
   email_verification:
