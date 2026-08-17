@@ -80,7 +80,7 @@ services:
           rewrite: /api
 
   auth-ui:
-    lxs: auth-ui@0.1.0
+    lxs: auth-ui@0.2.1
     access:
       routes:
         - path: /signin
