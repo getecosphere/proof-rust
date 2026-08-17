@@ -4,3 +4,5 @@ node_modules/
 dist/
 .next/
 .env
+notes-app/node_modules/
+notes-app/dist/

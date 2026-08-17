@@ -13,6 +13,13 @@ tower-http = { version = "0.5", features = ["fs", "trace"] }
 leptos = { version = "0.7.8", features = ["ssr"] }
 leptos_axum = "0.7.8"
 serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+mongodb = "2.8"
+bson = { version = "2.9", features = ["chrono-0_4"] }
+chrono = { version = "0.4", features = ["serde"] }
+jsonwebtoken = "9"
+futures-util = "0.3"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 
 [profile.release]
 opt-level = 3

@@ -1,14 +1,19 @@
 use axum::{
     body::Body,
+    extract::State,
     http::{header::{CACHE_CONTROL, CONTENT_TYPE}, HeaderValue, StatusCode},
     response::Response,
-    routing::get,
+    routing::{get, post, put, delete},
     Router,
 };
 use leptos::prelude::*;
 use leptos::{component, view, IntoView};
 use leptos_axum::render_app_to_stream;
 use tokio::net::TcpListener;
+use tower_http::services::ServeDir;
+
+mod notes;
+use notes::{init_indexes, Note, NotesApi};
 
 #[derive(Clone, Copy, PartialEq)]
 enum Page {
@@ -240,8 +245,9 @@ fn PoweredBy() -> impl IntoView {
 
 #[component]
 fn DashboardPage() -> impl IntoView {
-    // Client-side guard: no session → redirect to /signin. Then greet by name
-    // and load the profile avatar from profile-backend.
+    // Client-side guard: no session → redirect to /signin. The Notes workspace
+    // itself (two-pane, motion/Apple-style) is the React bundle at
+    // /static/notes/notes.js, built on the dev machine and served by this core.
     let dash_js = r##"(function () {
       var s = (function () { try { return JSON.parse(localStorage.getItem("eco_session") || "null"); } catch (e) { return null; } })();
       if (!s || !s.token) { window.location.href = "/signin"; return; }
@@ -257,7 +263,6 @@ fn DashboardPage() -> impl IntoView {
         var initials = (name || "?").split(/\s+/).map(function (w) { return w[0]; }).join("").slice(0,2).toUpperCase();
         av.textContent = initials;
       }
-      // Load avatarUrl from profile-backend (profile owns avatar).
       var userId = s.user && s.user.id;
       if (userId) {
         fetch("/api/users/" + encodeURIComponent(userId), { headers: { Authorization: "Bearer " + s.token } })
@@ -277,19 +282,14 @@ fn DashboardPage() -> impl IntoView {
             <p class="kicker">"YOUR ESTATE · PROTECTED"</p>
             <h1 class="dash-title">"Welcome back, "<span id="dash-greeting">"there"</span></h1>
             <p id="dash-sub" class="dash-sub">""</p>
-            <p class="dash-lead">"This is the protected area of a composed estate. Identity came from the auth LXS; your profile (name, avatar) is owned by the profile LXS — both binaries, zero source here."</p>
+            <p class="dash-lead">"Protected area of a composed estate. Identity came from the auth LXS; your notes are app data this core owns in MongoDB (rendered with motion, Apple-style); notifications — including the user.signed_up event — come from the notifications LXS."</p>
             <div class="dash-actions">
                 <a class="btn-primary" href="/profile">"Edit profile →"</a>
                 <a class="btn-secondary" href="/">"Back to homepage"</a>
             </div>
-            <div class="dash-proof">
-                <span>"auth LXS · 10.7 MB"</span>
-                <i>"·"</i>
-                <span>"profile LXS · 13.7 MB"</span>
-                <i>"·"</i>
-                <span>"this core · homepage only"</span>
-            </div>
         </section>
+        <div id="eco-notes-root"></div>
+        <script src="/static/notes/notes.js"></script>
         <script>{dash_js}</script>
     }
 }
@@ -435,15 +435,56 @@ async fn main() {
         .and_then(|p| p.parse().ok())
         .or_else(|| std::env::var("SERVER_PORT").ok().and_then(|p| p.parse().ok()))
         .unwrap_or(8500);
+    let notes_api = build_notes_api().await;
     let app = Router::new()
         .route("/", get(render_app_to_stream(|| view! { <App page=Page::Home /> })))
         .route("/dashboard", get(render_app_to_stream(|| view! { <App page=Page::Dashboard /> })))
         .route("/static/style.css", get(serve_style))
         .route("/static/ecosphere.png", get(serve_logo))
-        .route("/static/ecosphere-mark.png", get(serve_logo_mark));
+        .route("/static/ecosphere-mark.png", get(serve_logo_mark))
+        .nest_service("/static/notes", ServeDir::new("static/notes"))
+        .route("/api/notes", get(notes::list_notes).post(notes::create_note))
+        .route("/api/notes/{id}", put(notes::update_note).delete(notes::delete_note))
+        .route("/api/events/signup", post(notes::signup_event))
+        .with_state(notes_api);
     let listener = TcpListener::bind(format!("0.0.0.0:{port}"))
         .await
         .expect("proof-rust frontend could not bind its port");
     println!("proof-rust frontend listening on http://0.0.0.0:{port}");
     axum::serve(listener, app).await.expect("proof-rust frontend stopped unexpectedly");
+}
+
+async fn build_notes_api() -> NotesApi {
+    let uri = std::env::var("MONGODB_URI")
+        .unwrap_or_else(|_| "mongodb://localhost:27017/proof_rust_proof_rust".to_string());
+    let jwt_secret = std::env::var("JWT_SECRET").unwrap_or_default();
+    let notifications_url = std::env::var("NOTIFICATIONS_URL").unwrap_or_default();
+    let notes_api = match mongodb::Client::with_uri_str(&uri).await {
+        Ok(client) => {
+            let db = client
+                .default_database()
+                .unwrap_or_else(|| client.database("proof_rust_proof_rust"));
+            let collection = db.collection::<Note>("notes");
+            let _ = init_indexes(&collection).await;
+            NotesApi {
+                collection,
+                jwt_secret,
+                notifications_url,
+            }
+        }
+        Err(e) => {
+            eprintln!("notes: mongodb unavailable ({e}); notes + signup bridge disabled");
+            let collection = mongodb::Client::with_uri_str("mongodb://localhost:27017")
+                .await
+                .expect("mongo client")
+                .database("eco")
+                .collection::<Note>("notes");
+            NotesApi {
+                collection,
+                jwt_secret,
+                notifications_url,
+            }
+        }
+    };
+    notes_api
 }
