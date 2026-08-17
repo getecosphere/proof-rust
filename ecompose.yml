@@ -1,11 +1,15 @@
 project: proof-rust
 
+ct:
+  id: 1000
+
 estates:
   proof-rust:
     hostname: proof-rust.getecosphere.com
     ingress: tunnel
     cloudflare_account: getecosphere
     services:
+      - gateway
       - proof-rust
       - auth-backend
       - auth-ui
@@ -14,26 +18,111 @@ estates:
       - storage-backend
 
 services:
+  gateway:
+    lxs: gateway@0.3.0
+
   proof-rust:
     path: .
     runtimes:
       - rust
+    access:
+      routes:
+        - path: /
+          level: public
+        - path: /dashboard
+          level: auth
+        - path: /static/*
+          level: public
 
   auth-backend:
-    lxs: auth@1.1.0
+    path: ../../lxs/auth/backend
+    runtimes:
+      - rust
+      - mongodb@7
+    binary: rwid-auth-service
+    access:
+      routes:
+        - path: /api/auth/login
+          level: public
+        - path: /api/auth/register
+          level: public
+        - path: /api/auth/register-with-profile
+          level: public
+        - path: /api/auth/verify-email
+          level: public
+        - path: /api/auth/users/check-existence
+          level: public
+        - path: /api/auth/*
+          level: auth
+        - path: /auth-api/auth/login
+          level: public
+          strip: /auth-api
+          rewrite: /api
+        - path: /auth-api/auth/register
+          level: public
+          strip: /auth-api
+          rewrite: /api
+        - path: /auth-api/auth/register-with-profile
+          level: public
+          strip: /auth-api
+          rewrite: /api
+        - path: /auth-api/auth/verify-email
+          level: public
+          strip: /auth-api
+          rewrite: /api
+        - path: /auth-api/auth/users/check-existence
+          level: public
+          strip: /auth-api
+          rewrite: /api
+        - path: /auth-api/*
+          level: auth
+          strip: /auth-api
+          rewrite: /api
 
   auth-ui:
     lxs: auth-ui@0.1.0
+    access:
+      routes:
+        - path: /signin
+          level: public
+        - path: /signup
+          level: public
+        - path: /static/auth-ui.css
+          level: public
 
   profile-backend:
     lxs: profile@1.1.1
+    access:
+      routes:
+        - path: /api/profile/*
+          level: auth
+        - path: /api/users/*
+          level: auth
 
   profile-ui:
     lxs: profile-ui@0.1.0
+    access:
+      routes:
+        - path: /profile
+          level: auth
+        - path: /profile-edit
+          level: auth
+        - path: /static/profile-ui.css
+          level: public
 
   storage-backend:
     lxs: storage@1.0.6
+    access:
+      routes:
+        - path: /api/storage/*
+          level: auth
 
 auth:
   email_verification:
     enabled: false
+  roles:
+    - name: public
+      level: public
+    - name: authenticated
+      level: auth
+      default: true
