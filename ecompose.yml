@@ -16,6 +16,7 @@ estates:
       - profile-backend
       - profile-ui
       - storage-backend
+      - notifications-backend
 
 services:
   gateway:
@@ -25,21 +26,22 @@ services:
     path: .
     runtimes:
       - rust
+      - mongodb@7
     access:
       routes:
         - path: /
           level: public
         - path: /dashboard
           level: auth
+        - path: /api/notes/*
+          level: auth
+        - path: /api/events/signup
+          level: auth
         - path: /static/*
           level: public
 
   auth-backend:
-    path: ../../lxs/auth/backend
-    runtimes:
-      - rust
-      - mongodb@7
-    binary: rwid-auth-service
+    lxs: auth@1.3.0
     access:
       routes:
         - path: /api/auth/login
@@ -80,7 +82,7 @@ services:
           rewrite: /api
 
   auth-ui:
-    lxs: auth-ui@0.2.1
+    lxs: auth-ui@0.3.0
     access:
       routes:
         - path: /signin
@@ -115,6 +117,15 @@ services:
     access:
       routes:
         - path: /api/storage/*
+          level: auth
+
+  notifications-backend:
+    lxs: notifications@1.1.0
+    access:
+      routes:
+        - path: /api/notifications/health
+          level: public
+        - path: /api/notifications/*
           level: auth
 
 auth:
