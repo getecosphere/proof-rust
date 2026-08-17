@@ -42,6 +42,15 @@
 }
 .ns-name b { font-size: 15px; letter-spacing: -0.01em; }
 .ns-name span { color: var(--color-subtle, #8d8493); font-size: 11px; }
+.ns-error {
+  padding: 6px 12px;
+  border: 1px solid #e0a3a3;
+  border-radius: 10px;
+  background: #fdecec;
+  color: #b23a3a;
+  font-size: 12px;
+  white-space: nowrap;
+}
 
 .ns-body {
   display: grid;

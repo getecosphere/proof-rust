@@ -161,6 +161,7 @@ function Workspace({ token, name }) {
   const [current, setCurrent] = useState(null);
   const [draft, setDraft] = useState({ title: "", body: "", pinned: false });
   const [dirty, setDirty] = useState(false);
+  const [error, setError] = useState("");
   const saveTimer = useRef(null);
 
   const load = useCallback(() => {
@@ -216,11 +217,14 @@ function Workspace({ token, name }) {
   }, [dirty, draft, save]);
 
   const create = () => {
-    request("/api/notes", { method: "POST", body: JSON.stringify({ title: "", body: "" }) }).then((n) => {
-      setNotes((prev) => [n, ...(prev || [])]);
-      setCurrent(n.id);
-      setQuery("");
-    });
+    setError("");
+    request("/api/notes", { method: "POST", body: JSON.stringify({ title: "", body: "" }) })
+      .then((n) => {
+        setNotes((prev) => [n, ...(prev || [])]);
+        setCurrent(n.id);
+        setQuery("");
+      })
+      .catch((e) => setError(e.message || "Could not create note"));
   };
 
   const remove = () => {
@@ -256,6 +260,11 @@ function Workspace({ token, name }) {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.08 }}>
           <Bell token={token} />
         </motion.div>
+        {error && (
+          <motion.div className="ns-error" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} transition={soft}>
+            {esc(error)}
+          </motion.div>
+        )}
       </header>
 
       <div className="ns-body">
@@ -292,8 +301,6 @@ function Workspace({ token, name }) {
                     key={n.id}
                     className={"ns-row" + (active ? " active" : "")}
                     layout
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.96, height: 0, marginBottom: 0 }}
                     transition={spring}
                     onClick={() => setCurrent(n.id)}

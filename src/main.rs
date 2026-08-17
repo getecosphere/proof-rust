@@ -72,7 +72,7 @@ fn Header() -> impl IntoView {
         a.innerHTML = '<a class="btn-auth btn-auth-dash" href="/dashboard">Dashboard</a>' +
           '<a class="btn-auth btn-auth-out" href="/signin" data-logout="1">Sign out</a>';
         var out = a.querySelector("[data-logout]");
-        if (out) out.addEventListener("click", function (e) { e.preventDefault(); localStorage.removeItem("eco_session"); window.location.href = "/"; });
+        if (out) out.addEventListener("click", function (e) { e.preventDefault(); localStorage.removeItem("eco_session"); document.cookie = "eco_token=; Path=/; Max-Age=0"; window.location.href = "/"; });
       } else {
         a.innerHTML = '<a class="btn-auth btn-auth-in" href="/signin">Sign in</a>';
       }
@@ -289,7 +289,7 @@ fn DashboardPage() -> impl IntoView {
             </div>
         </section>
         <div id="eco-notes-root"></div>
-        <script src="/static/notes/notes.js"></script>
+        <script src="/static/notes/notes.js?v=20260817b"></script>
         <script>{dash_js}</script>
     }
 }
